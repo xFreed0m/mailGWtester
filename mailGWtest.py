@@ -117,7 +117,8 @@ def mail_test(smtp_targets, port, fromaddr, toaddr, data, subject, debug, attach
 
                     # Open PDF file in binary mode
                     # filename = "File_name_with_extension"
-                    file = open(Path(attachment), "rb")
+                    # file = open(Path(str(attachment)), "rb")
+                    file = open((str(attachment)), "rb")
                     p = MIMEBase('application', 'octet-stream')
                     p.set_payload((file).read())
                     encoders.encode_base64(p)
