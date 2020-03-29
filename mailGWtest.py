@@ -1,4 +1,4 @@
-# Python 3 script to test SMTP server for spoofing vulnerabilities
+# Python 3 script to test mail GW servers for malicious files
 # made by @x_Freed0m
 
 import sys
@@ -86,12 +86,12 @@ def banner():
     """)
 
 
-def mail_test(smtp_targets, port, fromaddr, to, data, subject, debug, attachment):
+def mail_test(smtp_targets, port, fromaddr, toaddr, data, subject, debug, attachment):
     for target in smtp_targets:
         LOGGER.info("[*] Checking host " + target + ':' + str(port))
         LOGGER.info("[*] Testing for mail relaying (external)")
         try:
-            if fromaddr and to:  # checking we have both to and from addresses
+            if fromaddr and toaddr:  # checking we have both to and from addresses
                 with SMTP(target, port) as current_target:
                     if debug:
                         current_target.set_debuglevel(1)
@@ -104,7 +104,7 @@ def mail_test(smtp_targets, port, fromaddr, to, data, subject, debug, attachment
                     # Create a multipart message and set headers
                     message = MIMEMultipart()
                     message["From"] = fromaddr
-                    message["To"] = to
+                    message["To"] = toaddr
                     message["Subject"] = subject
                     # message["Bcc"] = receiver_email  # Recommended for mass emails
 
@@ -135,8 +135,8 @@ def mail_test(smtp_targets, port, fromaddr, to, data, subject, debug, attachment
                     text = message.as_string()
 ##############
 
-                    current_target.sendmail(fromaddr, to, text)
-                    LOGGER.critical("[+] Mail sent FROM: %s TO: %s", target, fromaddr, to)
+                    current_target.sendmail(fromaddr, toaddr, text)
+                    LOGGER.critical("[+] Mail sent FROM: %s TO: %s", target, fromaddr, toaddr)
             else:
                 LOGGER.critical("[!] Problem with FROM and/or TO address!")
                 exit(1)
@@ -166,7 +166,8 @@ def main():
     try:
         if args.file:
             attachment = [args.file]
-            mail_test(smtp_targets, args.port, args.fromaddr, args.toaddr, args.data, args.subject, args.debug, attachment)
+            mail_test(smtp_targets, args.port, args.fromaddr, args.toaddr, args.data, args.subject, args.debug,
+                      attachment)
         elif args.folder:
             if not os.path.exists(args.folder):
                 LOGGER.error("Path doesn't exist, please recheck")
