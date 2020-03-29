@@ -166,13 +166,13 @@ def main():
     try:
         if args.file:
             attachment = [args.file]
-            mail_test(smtp_targets, args.port, args.fromaddr, args.to, args.data, args.subject, args.debug, attachment)
+            mail_test(smtp_targets, args.port, args.fromaddr, args.toaddr, args.data, args.subject, args.debug, attachment)
         elif args.folder:
             if not os.path.exists(args.folder):
                 LOGGER.error("Path doesn't exist, please recheck")
             attachment_list = folder(args.folder)
             for attachment in attachment_list:
-                mail_test(smtp_targets, args.port, args.fromaddr, args.to, args.data, args.subject, args.debug,
+                mail_test(smtp_targets, args.port, args.fromaddr, args.toaddr, args.data, args.subject, args.debug,
                           attachment)
         else:
             LOGGER.warning('Could not find it! Did you specify existing file or folder?')
