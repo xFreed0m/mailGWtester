@@ -119,13 +119,13 @@ def mail_test(smtp_targets, port, fromaddr, toaddr, data, subject, debug, attach
                     # Add UUID to body of the email
                     message.attach(MIMEText(data + str(gen_uid), "plain"))
 
-                    # filename = "File_name_with_extension"
+                    filename = os.path.basename(attachment)
                     # file = open(Path(str(attachment)), "rb")
-                    file = open(attachment, "rb")
+                    file = open(filename, "rb")
                     p = MIMEBase('application', 'octet-stream')
                     p.set_payload(file.read())
                     encoders.encode_base64(p)
-                    p.add_header('Content-Disposition', "attachment; filename= %s" % attachment)
+                    p.add_header('Content-Disposition', "attachment; filename= %s" % filename)
 
                     # Add file as application/octet-stream
                     # Email client can usually download this automatically as attachment
@@ -226,4 +226,4 @@ if __name__ == '__main__':
 # Code cleanup
 # Improve logging
 
-# v: 0.00002
+# v: 0.00003
