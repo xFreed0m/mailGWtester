@@ -125,7 +125,7 @@ def mail_test(smtp_targets, port, fromaddr, toaddr, data, subject, debug, attach
                     p = MIMEBase('application', 'octet-stream')
                     p.set_payload(file.read())
                     encoders.encode_base64(p)
-                    p.add_header('Content-Disposition', "attachment; filename= %s" % filename)
+                    p.add_header('Content-Disposition', "attachment; filename= %s" % attachment)
 
                     # Add file as application/octet-stream
                     # Email client can usually download this automatically as attachment
@@ -226,4 +226,4 @@ if __name__ == '__main__':
 # Code cleanup
 # Improve logging
 
-# v: 0.00004
+# v: 0.00005
