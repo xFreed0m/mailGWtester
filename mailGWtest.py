@@ -3,11 +3,13 @@
 
 import sys
 import argparse
+from pathlib import Path
+import os.path
+
 import logging
 from colorlog import ColoredFormatter
-import os.path
-from smtplib import SMTP, SMTPRecipientsRefused, SMTPSenderRefused
 
+from smtplib import SMTP, SMTPRecipientsRefused, SMTPSenderRefused
 from email import encoders
 from email.mime.base import MIMEBase
 from email.mime.multipart import MIMEMultipart
@@ -90,7 +92,6 @@ def banner():
 def mail_test(smtp_targets, port, fromaddr, toaddr, data, subject, debug, attachment):
     for target in smtp_targets:
         LOGGER.info("[*] Checking host " + target + ':' + str(port))
-        LOGGER.info("[*] Testing for mail relaying (external)")
         try:
             if fromaddr and toaddr:  # checking we have both to and from addresses
                 with SMTP(target, port) as current_target:
@@ -115,24 +116,29 @@ def mail_test(smtp_targets, port, fromaddr, toaddr, data, subject, debug, attach
                     # filename = attachment  # In same directory as script
 
                     # Open PDF file in binary mode
-                    with open(attachment, "rb") as attached:
-                        # Add file as application/octet-stream
-                        # Email client can usually download this automatically as attachment
-                        part = MIMEBase("application", "octet-stream")
-                        part.set_payload(attached.read())
+                    # filename = "File_name_with_extension"
+                    file = open(Path(attachment), "rb")
+                    p = MIMEBase('application', 'octet-stream')
+                    p.set_payload((file).read())
+                    encoders.encode_base64(p)
+                    p.add_header('Content-Disposition', "attachment; filename= %s" % attachment)
+
+                    # Add file as application/octet-stream
+                    # Email client can usually download this automatically as attachment
+                    # part = MIMEBase("application", "octet-stream")
+                    # part.set_payload(attached.read())
 
                     # attachment = MIMEApplication(attachment.read_bytes())
 
                     # Encode file in ASCII characters to send by email
-                    encoders.encode_base64(attachment)
 
                     # Add header as key/value pair to attachment part
-                    attachment.add_header(
-                        "Content-Disposition",
-                        "attachment; filename= {attachment}",)
+                    # attachment.add_header(
+                    #     "Content-Disposition",
+                    #     "attachment; filename= {attachment}",)
 
                     # Add attachment to message and convert message to string
-                    message.attach(attachment)
+                    message.attach(p)
                     text = message.as_string()
 ##############
 
