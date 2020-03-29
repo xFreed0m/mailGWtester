@@ -26,7 +26,7 @@ def args_parse():
                              type=int, default=25)
     # args_parser.add_argument('--tester', help="Pentester email address", required=True)
     args_parser.add_argument('-t', '--toaddr', help="The recipient address (To)")
-    args_parser.add_argument('-f', '--fromaddr', help="the sender address (From)")
+    args_parser.add_argument('-fa', '--fromaddr', help="the sender address (From)")
     args_parser.add_argument('-d', '--data', help="The email content (data)", default=data)
     args_parser.add_argument('-s', '--subject', help="the Subject to use in the email, default is "
                                                      '"SMTP Pentest"', default="SMTP server "
