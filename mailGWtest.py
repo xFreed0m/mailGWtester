@@ -108,7 +108,7 @@ def mail_test(smtp_targets, port, fromaddr, toaddr, data, subject, debug, attach
                     if debug:
                         current_target.set_debuglevel(1)
                     current_target.ehlo_or_helo_if_needed()
-################
+                    ################
                     # Create a multipart message and set headers
                     message = MIMEMultipart()
                     message["From"] = fromaddr
@@ -144,11 +144,14 @@ def mail_test(smtp_targets, port, fromaddr, toaddr, data, subject, debug, attach
                     # Add attachment to message and convert message to string
                     message.attach(p)
                     text = message.as_string()
-##############
+                    ##############
 
                     current_target.sendmail(fromaddr, toaddr, text)
-                    LOGGER.critical("[+] Mail sent FROM: %s TO: %s, msg UUID: %s, attachment: %s \n", str(target),
-                                    str(fromaddr), str(toaddr), gen_uid, attachment)
+                    LOGGER.critical("[+] Mail sent FROM: %s TO: %s, msg UUID: %s, attachment: %s \n") % (str(target),
+                                                                                                         str(fromaddr),
+                                                                                                         str(toaddr),
+                                                                                                         gen_uid,
+                                                                                                         attachment)
             else:
                 LOGGER.critical("[!] Problem with FROM and/or TO address!")
                 exit(1)
@@ -217,7 +220,6 @@ def main():
 if __name__ == '__main__':
     main()
 
-
 # TODO:
 # add manual and custom delay
 # add UID to each message
@@ -226,4 +228,4 @@ if __name__ == '__main__':
 # Code cleanup
 # Improve logging
 
-# v: 0.00007
+# v: 0.00008
