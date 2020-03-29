@@ -218,11 +218,7 @@ if __name__ == '__main__':
     main()
 
 # TODO:
-# add manual and custom delay
-# add UID to each message
-# fix the file option
-# fix the filename (it's with 'attached' now
 # Code cleanup
 # Improve logging
 
-# v: 0.00010
+# v: 0.00011
