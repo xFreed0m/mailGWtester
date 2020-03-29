@@ -190,7 +190,7 @@ def main():
         smtp_targets = [args.targets]
     try:
         if args.file:
-            attachment = [args.file]
+            attachment = args.file
             mail_test(smtp_targets, args.port, args.fromaddr, args.toaddr, args.data, args.subject, args.debug,
                       attachment, gen_uid)
         elif args.folder:
@@ -226,4 +226,4 @@ if __name__ == '__main__':
 # Code cleanup
 # Improve logging
 
-# v: 0.00003
+# v: 0.00004
