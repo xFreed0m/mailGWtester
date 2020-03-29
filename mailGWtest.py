@@ -150,8 +150,9 @@ def mail_test(smtp_targets, port, fromaddr, toaddr, data, subject, debug, attach
                     LOGGER.critical("[+] Mail sent FROM: %s TO: %s, msg UUID: %s, attachment: %s \n") % (str(target),
                                                                                                          str(fromaddr),
                                                                                                          str(toaddr),
-                                                                                                         gen_uid,
-                                                                                                         attachment)
+                                                                                                         str(gen_uid),
+                                                                                                         str(attachment)
+                                                                                                         )
             else:
                 LOGGER.critical("[!] Problem with FROM and/or TO address!")
                 exit(1)
@@ -228,4 +229,4 @@ if __name__ == '__main__':
 # Code cleanup
 # Improve logging
 
-# v: 0.00008
+# v: 0.00009
