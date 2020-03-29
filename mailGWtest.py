@@ -8,21 +8,18 @@ from colorlog import ColoredFormatter
 import os.path
 from smtplib import SMTP, SMTPRecipientsRefused, SMTPSenderRefused
 
-# import email, smtplib, ssl
-
 from email import encoders
-# from email.mime.base import MIMEBase
+from email.mime.base import MIMEBase
 from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
-
-from email.mime.application import MIMEApplication
-from pathlib import Path
 
 
 def args_parse():
     data = "This email is part of a security testing approved by the Security department. Thank " \
            "you for your cooperation, Please forward this email to \n"
     args_parser = argparse.ArgumentParser()
+    input_group = args_parser.add_mutually_exclusive_group(
+        required=True)  # get at least file or folder
     args_parser.add_argument('--targets', help="SMTP target server address or file containing "
                                                "SMTP servers list", required=True)
     args_parser.add_argument('-p', '--port', help="SMTP target server port to use (default is 25)",
@@ -34,9 +31,12 @@ def args_parse():
     args_parser.add_argument('-s', '--subject', help="the Subject to use in the email, default is "
                                                      '"SMTP Pentest"', default="SMTP server "
                                                                                "Pentest")
-    args_parser.add_argument('-x', '--attachments', help="a file you wish to attach to the email", default=None)
+    # args_parser.add_argument('-x', '--attachments', help="a file you wish to attach to the email", default=None)
     args_parser.add_argument('--debug', help="debug mode switch - to print all the server "
                                              "commands and output to stdout", action="store_true")
+    input_group.add_argument('-F', '--folder',
+                             help="Folder containing multiple files to attach (one per mail)")
+    input_group.add_argument('-f', '--file', help="Single file to attach")
     return args_parser.parse_args()
 
 
@@ -86,7 +86,7 @@ def banner():
     """)
 
 
-def mail_test(smtp_targets, port, fromaddr, recipient, data, subject, debug, attachment_list):
+def mail_test(smtp_targets, port, fromaddr, recipient, data, subject, debug, attachment):
     for target in smtp_targets:
         LOGGER.info("[*] Checking host " + target + ':' + str(port))
         LOGGER.info("[*] Testing for mail relaying (external)")
@@ -114,15 +114,13 @@ def mail_test(smtp_targets, port, fromaddr, recipient, data, subject, debug, att
                     # filename = attachment  # In same directory as script
 
                     # Open PDF file in binary mode
-                    # with open(attachment, "rb") as attached:
-                    #     # Add file as application/octet-stream
-                    #     # Email client can usually download this automatically as attachment
-                    #     part = MIMEBase("application", "octet-stream")
-                    #     part.set_payload(attached.read())
+                    with open(attachment, "rb") as attached:
+                        # Add file as application/octet-stream
+                        # Email client can usually download this automatically as attachment
+                        part = MIMEBase("application", "octet-stream")
+                        part.set_payload(attached.read())
 
-                    for folder in attachment_list:
-                        for file in Path(folder).iterdir():
-                            attachment = MIMEApplication(file.read_bytes())
+                    # attachment = MIMEApplication(attachment.read_bytes())
 
                     # Encode file in ASCII characters to send by email
                     encoders.encode_base64(attachment)
@@ -153,6 +151,10 @@ def mail_test(smtp_targets, port, fromaddr, recipient, data, subject, debug, att
             excptn(e)
 
 
+def folder(path):
+    return [os.path.join(path, f) for f in os.listdir(path)]
+
+
 def main():
     args = args_parse()
     configure_logger()
@@ -161,11 +163,25 @@ def main():
         smtp_targets = open(args.targets).read().splitlines()
     else:
         smtp_targets = [args.targets]
-    if os.path.exists(args.attachments):  # checking if the switch is single entry or a file
-        attachment_list = open(args.attachments).read().splitlines()
-    else:
-        attachment_list = [args.attachments]
-    mail_test(smtp_targets, args.port, args.fromaddr, args.tester, args.data, args.subject, args.debug, attachment_list)
+    try:
+        if args.file:
+            attachment = [args.file]
+            mail_test(smtp_targets, args.port, args.fromaddr, args.tester, args.data, args.subject, args.debug,
+                      attachment)
+        elif args.folder:
+            if not os.path.exists(args.folder):
+                LOGGER.error("Path doesn't exist, please recheck")
+            attachment_list = folder(args.folder)
+            for attachment in attachment_list:
+                mail_test(smtp_targets, args.port, args.fromaddr, args.tester, args.data, args.subject, args.debug,
+                          attachment)
+        else:
+            LOGGER.warning('Could not find it! Did you specify existing file or folder?')
+    except KeyboardInterrupt:
+        LOGGER.critical("[CTRL+C] Stopping the tool")
+        exit(1)
+    except Exception as e:
+        excptn(e)
 
 
 if __name__ == '__main__':
