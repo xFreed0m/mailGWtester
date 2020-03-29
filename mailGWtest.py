@@ -46,7 +46,7 @@ def configure_logger():
     """
 
     global LOGGER
-    LOGGER = logging.getLogger("SMTPTester")
+    LOGGER = logging.getLogger("mailGWtester")
     # Set logging level
     LOGGER.setLevel(logging.INFO)
 
@@ -63,7 +63,7 @@ def configure_logger():
     ch = logging.StreamHandler(sys.stdout)  # Handler to print the logs to stdout
     ch.setFormatter(formatter)
     LOGGER.addHandler(ch)
-    fh = logging.FileHandler("SMTPTester.log")  # Handler to print the logs to a file in append mode
+    fh = logging.FileHandler("mailGWtester.log")  # Handler to print the logs to a file in append mode
     fh.setFormatter(formatter)
     LOGGER.addHandler(fh)
 
@@ -86,12 +86,12 @@ def banner():
     """)
 
 
-def mail_test(smtp_targets, port, fromaddr, recipient, data, subject, debug, attachment):
+def mail_test(smtp_targets, port, fromaddr, to, data, subject, debug, attachment):
     for target in smtp_targets:
         LOGGER.info("[*] Checking host " + target + ':' + str(port))
         LOGGER.info("[*] Testing for mail relaying (external)")
         try:
-            if fromaddr and recipient:  # checking we have both to and from addresses
+            if fromaddr and to:  # checking we have both to and from addresses
                 with SMTP(target, port) as current_target:
                     if debug:
                         current_target.set_debuglevel(1)
@@ -104,7 +104,7 @@ def mail_test(smtp_targets, port, fromaddr, recipient, data, subject, debug, att
                     # Create a multipart message and set headers
                     message = MIMEMultipart()
                     message["From"] = fromaddr
-                    message["To"] = recipient
+                    message["To"] = to
                     message["Subject"] = subject
                     # message["Bcc"] = receiver_email  # Recommended for mass emails
 
@@ -135,8 +135,8 @@ def mail_test(smtp_targets, port, fromaddr, recipient, data, subject, debug, att
                     text = message.as_string()
 ##############
 
-                    current_target.sendmail(fromaddr, recipient, text)
-                    LOGGER.critical("[+] Mail sent FROM: %s TO: %s", target, fromaddr, recipient)
+                    current_target.sendmail(fromaddr, to, text)
+                    LOGGER.critical("[+] Mail sent FROM: %s TO: %s", target, fromaddr, to)
             else:
                 LOGGER.critical("[!] Problem with FROM and/or TO address!")
                 exit(1)
@@ -166,14 +166,13 @@ def main():
     try:
         if args.file:
             attachment = [args.file]
-            mail_test(smtp_targets, args.port, args.fromaddr, args.tester, args.data, args.subject, args.debug,
-                      attachment)
+            mail_test(smtp_targets, args.port, args.fromaddr, args.to, args.data, args.subject, args.debug, attachment)
         elif args.folder:
             if not os.path.exists(args.folder):
                 LOGGER.error("Path doesn't exist, please recheck")
             attachment_list = folder(args.folder)
             for attachment in attachment_list:
-                mail_test(smtp_targets, args.port, args.fromaddr, args.tester, args.data, args.subject, args.debug,
+                mail_test(smtp_targets, args.port, args.fromaddr, args.to, args.data, args.subject, args.debug,
                           attachment)
         else:
             LOGGER.warning('Could not find it! Did you specify existing file or folder?')
