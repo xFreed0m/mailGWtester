@@ -161,7 +161,7 @@ def main():
         smtp_targets = open(args.targets).read().splitlines()
     else:
         smtp_targets = [args.targets]
-    if os.path.exists(args.attachment):  # checking if the switch is single entry or a file
+    if os.path.exists(args.attachments):  # checking if the switch is single entry or a file
         attachment_list = open(args.attachments).read().splitlines()
     else:
         attachment_list = [args.attachments]
