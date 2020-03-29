@@ -108,10 +108,6 @@ def mail_test(smtp_targets, port, fromaddr, toaddr, data, subject, debug, attach
                     if debug:
                         current_target.set_debuglevel(1)
                     current_target.ehlo_or_helo_if_needed()
-                    # msg = MIMEText(data)
-                    # msg['Subject'] = subject
-                    # msg['From'] = fromaddr
-                    # msg['To'] = recipient
 ################
                     # Create a multipart message and set headers
                     message = MIMEMultipart()
@@ -120,17 +116,14 @@ def mail_test(smtp_targets, port, fromaddr, toaddr, data, subject, debug, attach
                     message["Subject"] = subject
                     # message["Bcc"] = receiver_email  # Recommended for mass emails
 
-                    # Add body to email
+                    # Add UUID to body of the email
                     message.attach(MIMEText(data + gen_uid, "plain"))
 
-                    # filename = attachment  # In same directory as script
-
-                    # Open PDF file in binary mode
                     # filename = "File_name_with_extension"
                     # file = open(Path(str(attachment)), "rb")
-                    file = open((str(attachment)), "rb")
+                    file = open(attachment, "rb")
                     p = MIMEBase('application', 'octet-stream')
-                    p.set_payload((file).read())
+                    p.set_payload(file.read())
                     encoders.encode_base64(p)
                     p.add_header('Content-Disposition', "attachment; filename= %s" % attachment)
 
