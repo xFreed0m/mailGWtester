@@ -82,7 +82,7 @@ def configure_logger():
 
 def excptn(e):
     LOGGER.critical("[!] Exception: " + str(e))
-    exit(1)
+    sys.exit(1)
 
 
 def banner():
@@ -108,7 +108,7 @@ def mail_test(smtp_targets, port, fromaddr, toaddr, data, subject, debug, attach
                     if debug:
                         current_target.set_debuglevel(1)
                     current_target.ehlo_or_helo_if_needed()
-                    ################
+
                     # Create a multipart message and set headers
                     message = MIMEMultipart()
                     message["From"] = fromaddr
@@ -127,38 +127,22 @@ def mail_test(smtp_targets, port, fromaddr, toaddr, data, subject, debug, attach
                     encoders.encode_base64(p)
                     p.add_header('Content-Disposition', "attachment; filename= %s" % filename)
 
-                    # Add file as application/octet-stream
-                    # Email client can usually download this automatically as attachment
-                    # part = MIMEBase("application", "octet-stream")
-                    # part.set_payload(attached.read())
-
-                    # attachment = MIMEApplication(attachment.read_bytes())
-
-                    # Encode file in ASCII characters to send by email
-
-                    # Add header as key/value pair to attachment part
-                    # attachment.add_header(
-                    #     "Content-Disposition",
-                    #     "attachment; filename= {attachment}",)
-
-                    # Add attachment to message and convert message to string
                     message.attach(p)
                     text = message.as_string()
-                    ##############
 
                     current_target.sendmail(fromaddr, toaddr, text)
                     LOGGER.info("[+] Mail sent FROM: %s TO: %s, msg UUID: %s, attachment: %s \n" %
-                                    (str(fromaddr), str(toaddr), str(gen_uid), str(attachment)))
+                                (str(fromaddr), str(toaddr), str(gen_uid), str(attachment)))
             else:
                 LOGGER.critical("[!] Problem with FROM and/or TO address!")
-                exit(1)
+                sys.exit(1)
         except (SMTPRecipientsRefused, SMTPSenderRefused) as e:
-            LOGGER.critical("[!] SMTP Error: %s\n[-] SMTP refuse!", str(e), target)
+            LOGGER.critical("[!] SMTP Error: %s\n[-] SMTP refuse!", str(e))
         except ConnectionRefusedError:
             LOGGER.critical("[!] Connection refused by host %s", target)
         except KeyboardInterrupt:
             LOGGER.critical("[!] [CTRL+C] Stopping...")
-            exit(1)
+            sys.exit(1)
         except Exception as e:
             excptn(e)
 
@@ -209,7 +193,7 @@ def main():
             LOGGER.warning('Could not find it! Did you specify existing file or folder?')
     except KeyboardInterrupt:
         LOGGER.critical("[CTRL+C] Stopping the tool")
-        exit(1)
+        sys.exit(1)
     except Exception as e:
         excptn(e)
 
@@ -220,5 +204,7 @@ if __name__ == '__main__':
 # TODO:
 # Code cleanup
 # Improve logging
+# add more SMTP errors
+#
 
 # v: 0.00011
