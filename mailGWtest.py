@@ -21,7 +21,7 @@ import uuid
 
 def args_parse():
     data = "This email is part of a security testing approved by the Security department. Thank " \
-           "you for your cooperation, Please forward this email to \n"
+           "you for your cooperation.\n"
     args_parser = argparse.ArgumentParser()
     input_group = args_parser.add_mutually_exclusive_group(
         required=True)  # get at least file or folder
@@ -32,7 +32,7 @@ def args_parse():
                              type=int, default=25)
     args_parser.add_argument('-t', '--toaddr', help="The recipient address (To)")
     args_parser.add_argument('-fa', '--fromaddr', help="the sender address (From)")
-    args_parser.add_argument('-d', '--data', help="The email content (data)", default=data)
+    args_parser.add_argument('-d', '--data', help="The email body content (data)", default=data)
     args_parser.add_argument('-s', '--subject', help="the Subject to use in the email, default is "
                                                      '"SMTP Pentest"', default="SMTP server "
                                                                                "Pentest")
@@ -117,7 +117,7 @@ def mail_test(smtp_targets, port, fromaddr, toaddr, data, subject, debug, attach
                     # message["Bcc"] = receiver_email  # Recommended for mass emails
 
                     # Add UUID to body of the email
-                    message.attach(MIMEText(data + gen_uid, "plain"))
+                    message.attach(MIMEText(data + str(gen_uid), "plain"))
 
                     # filename = "File_name_with_extension"
                     # file = open(Path(str(attachment)), "rb")
@@ -147,8 +147,8 @@ def mail_test(smtp_targets, port, fromaddr, toaddr, data, subject, debug, attach
 ##############
 
                     current_target.sendmail(fromaddr, toaddr, text)
-                    LOGGER.critical("[+] Mail sent FROM: %s TO: %s, msg UUID: %s", str(target), str(fromaddr),
-                                    str(toaddr), gen_uid)
+                    LOGGER.critical("[+] Mail sent FROM: %s TO: %s, msg UUID: %s, attachment: %s \n", str(target),
+                                    str(fromaddr), str(toaddr), gen_uid, attachment)
             else:
                 LOGGER.critical("[!] Problem with FROM and/or TO address!")
                 exit(1)
@@ -226,4 +226,4 @@ if __name__ == '__main__':
 # Code cleanup
 # Improve logging
 
-# v: 0.00001
+# v: 0.00002
