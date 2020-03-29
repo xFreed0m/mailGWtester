@@ -147,7 +147,8 @@ def mail_test(smtp_targets, port, fromaddr, toaddr, data, subject, debug, attach
 ##############
 
                     current_target.sendmail(fromaddr, toaddr, text)
-                    LOGGER.critical("[+] Mail sent FROM: %s TO: %s, msg UUID: %s", target, fromaddr, toaddr, gen_uid)
+                    LOGGER.critical("[+] Mail sent FROM: %s TO: %s, msg UUID: %s", str(target), str(fromaddr),
+                                    str(toaddr), str(gen_uid))
             else:
                 LOGGER.critical("[!] Problem with FROM and/or TO address!")
                 exit(1)
