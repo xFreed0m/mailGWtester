@@ -3,8 +3,9 @@
 
 import sys
 import argparse
-from pathlib import Path
 import os.path
+from random import randint
+import time
 
 import logging
 from colorlog import ColoredFormatter
@@ -15,6 +16,8 @@ from email.mime.base import MIMEBase
 from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
 
+import uuid
+
 
 def args_parse():
     data = "This email is part of a security testing approved by the Security department. Thank " \
@@ -22,23 +25,30 @@ def args_parse():
     args_parser = argparse.ArgumentParser()
     input_group = args_parser.add_mutually_exclusive_group(
         required=True)  # get at least file or folder
+    sleep_group = args_parser.add_mutually_exclusive_group(required=False)
     args_parser.add_argument('--targets', help="SMTP target server address or file containing "
                                                "SMTP servers list", required=True)
     args_parser.add_argument('-p', '--port', help="SMTP target server port to use (default is 25)",
                              type=int, default=25)
-    # args_parser.add_argument('--tester', help="Pentester email address", required=True)
     args_parser.add_argument('-t', '--toaddr', help="The recipient address (To)")
     args_parser.add_argument('-fa', '--fromaddr', help="the sender address (From)")
     args_parser.add_argument('-d', '--data', help="The email content (data)", default=data)
     args_parser.add_argument('-s', '--subject', help="the Subject to use in the email, default is "
                                                      '"SMTP Pentest"', default="SMTP server "
                                                                                "Pentest")
-    # args_parser.add_argument('-x', '--attachments', help="a file you wish to attach to the email", default=None)
     args_parser.add_argument('--debug', help="debug mode switch - to print all the server "
                                              "commands and output to stdout", action="store_true")
     input_group.add_argument('-F', '--folder',
                              help="Folder containing multiple files to attach (one per mail)")
     input_group.add_argument('-f', '--file', help="Single file to attach")
+    sleep_group.add_argument('-sl', '--sleep', type=int,
+                             help="Throttle the attempts to one attempt every # seconds, "
+                                  "can be randomized by passing the value 'random' - default is 0",
+                             default=0)
+    sleep_group.add_argument('-r', '--random', nargs=2, type=int, metavar=(
+        'minimum_sleep', 'maximum_sleep'), help="Randomize the time between each authentication "
+                                                "attempt. Please provide minimum and maximum "
+                                                "values in seconds")
     return args_parser.parse_args()
 
 
@@ -89,7 +99,7 @@ def banner():
     """)
 
 
-def mail_test(smtp_targets, port, fromaddr, toaddr, data, subject, debug, attachment):
+def mail_test(smtp_targets, port, fromaddr, toaddr, data, subject, debug, attachment, gen_uid):
     for target in smtp_targets:
         LOGGER.info("[*] Checking host " + target + ':' + str(port))
         try:
@@ -111,7 +121,7 @@ def mail_test(smtp_targets, port, fromaddr, toaddr, data, subject, debug, attach
                     # message["Bcc"] = receiver_email  # Recommended for mass emails
 
                     # Add body to email
-                    message.attach(MIMEText(data, "plain"))
+                    message.attach(MIMEText(data + gen_uid, "plain"))
 
                     # filename = attachment  # In same directory as script
 
@@ -144,7 +154,7 @@ def mail_test(smtp_targets, port, fromaddr, toaddr, data, subject, debug, attach
 ##############
 
                     current_target.sendmail(fromaddr, toaddr, text)
-                    LOGGER.critical("[+] Mail sent FROM: %s TO: %s", target, fromaddr, toaddr)
+                    LOGGER.critical("[+] Mail sent FROM: %s TO: %s, msg UUID: %s", target, fromaddr, toaddr, gen_uid)
             else:
                 LOGGER.critical("[!] Problem with FROM and/or TO address!")
                 exit(1)
@@ -163,10 +173,23 @@ def folder(path):
     return [os.path.join(path, f) for f in os.listdir(path)]
 
 
+def random_time(minimum, maximum):
+    sleep_amount = randint(minimum, maximum)
+    return sleep_amount
+
+
 def main():
     args = args_parse()
     configure_logger()
     banner()
+    gen_uid = uuid.uuid4()
+    min_sleep, max_sleep = 0, 0
+    random = False
+    sleep_time = 0
+    if args.random:
+        random = True
+        min_sleep = args.random[0]
+        max_sleep = args.random[1]
     if os.path.exists(args.targets):  # checking if the switch is single entry or a file
         smtp_targets = open(args.targets).read().splitlines()
     else:
@@ -175,14 +198,19 @@ def main():
         if args.file:
             attachment = [args.file]
             mail_test(smtp_targets, args.port, args.fromaddr, args.toaddr, args.data, args.subject, args.debug,
-                      attachment)
+                      attachment, gen_uid)
         elif args.folder:
             if not os.path.exists(args.folder):
                 LOGGER.error("Path doesn't exist, please recheck")
             attachment_list = folder(args.folder)
             for attachment in attachment_list:
                 mail_test(smtp_targets, args.port, args.fromaddr, args.toaddr, args.data, args.subject, args.debug,
-                          attachment)
+                          attachment, gen_uid)
+                if random is True:
+                    sleep_time = random_time(min_sleep, max_sleep)
+                    time.sleep(float(sleep_time))
+                else:
+                    time.sleep(float(sleep_time))
         else:
             LOGGER.warning('Could not find it! Did you specify existing file or folder?')
     except KeyboardInterrupt:
@@ -194,3 +222,12 @@ def main():
 
 if __name__ == '__main__':
     main()
+
+
+# TODO:
+# add manual and custom delay
+# add UID to each message
+# fix the file option
+# fix the filename (it's with 'attached' now
+# Code cleanup
+# Improve logging
