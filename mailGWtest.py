@@ -31,8 +31,6 @@ def args_parse():
     args_parser.add_argument('-t', '--toaddr', help="The recipient address (To)")
     args_parser.add_argument('-f', '--fromaddr', help="the sender address (From)")
     args_parser.add_argument('-d', '--data', help="The email content (data)", default=data)
-    args_parser.add_argument('-a', '--address', help="Addresses to use with VRFY, can be single "
-                                                     "or a file")
     args_parser.add_argument('-s', '--subject', help="the Subject to use in the email, default is "
                                                      '"SMTP Pentest"', default="SMTP server "
                                                                                "Pentest")
@@ -164,7 +162,7 @@ def main():
     else:
         smtp_targets = [args.targets]
     if os.path.exists(args.attachment):  # checking if the switch is single entry or a file
-        attachment_list = open(args.attachment).read().splitlines()
+        attachment_list = open(args.attachments).read().splitlines()
     else:
         attachment_list = [args.attachments]
     mail_test(smtp_targets, args.port, args.fromaddr, args.tester, args.data, args.subject, args.debug, attachment_list)
