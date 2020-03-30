@@ -99,7 +99,7 @@ def banner():
     """)
 
 
-def mail_test(smtp_targets, port, fromaddr, toaddr, data, subject, debug, attachment, gen_uid):
+def mail_test(smtp_targets, port, fromaddr, toaddr, data, subject, debug, attachment):
     for target in smtp_targets:
         LOGGER.info("[*] Checking host " + target + ':' + str(port))
         try:
@@ -117,7 +117,8 @@ def mail_test(smtp_targets, port, fromaddr, toaddr, data, subject, debug, attach
                     # message["Bcc"] = receiver_email  # Recommended for mass emails
 
                     # Add UUID to body of the email
-                    message.attach(MIMEText(data + str(gen_uid), "plain"))
+                    generated_uid = gen_uid()
+                    message.attach(MIMEText(data + str(generated_uid), "plain"))
 
                     filename = os.path.basename(attachment)
                     # file = open(Path(str(attachment)), "rb")
@@ -132,7 +133,7 @@ def mail_test(smtp_targets, port, fromaddr, toaddr, data, subject, debug, attach
 
                     current_target.sendmail(fromaddr, toaddr, text)
                     LOGGER.info("[+] Mail sent FROM: %s TO: %s, msg UUID: %s, attachment: %s \n" %
-                                (str(fromaddr), str(toaddr), str(gen_uid), str(attachment)))
+                                (str(fromaddr), str(toaddr), str(generated_uid), str(attachment)))
             else:
                 LOGGER.critical("[!] Problem with FROM and/or TO address!")
                 sys.exit(1)
@@ -156,11 +157,15 @@ def random_time(minimum, maximum):
     return sleep_amount
 
 
+def gen_uid():
+    generated_uid = uuid.uuid4()
+    return generated_uid
+
+
 def main():
     args = args_parse()
     configure_logger()
     banner()
-    gen_uid = uuid.uuid4()
     min_sleep, max_sleep = 0, 0
     random = False
     sleep_time = 0
@@ -176,14 +181,14 @@ def main():
         if args.file:
             attachment = args.file
             mail_test(smtp_targets, args.port, args.fromaddr, args.toaddr, args.data, args.subject, args.debug,
-                      attachment, gen_uid)
+                      attachment)
         elif args.folder:
             if not os.path.exists(args.folder):
                 LOGGER.error("Path doesn't exist, please recheck")
             attachment_list = folder(args.folder)
             for attachment in attachment_list:
                 mail_test(smtp_targets, args.port, args.fromaddr, args.toaddr, args.data, args.subject, args.debug,
-                          attachment, gen_uid)
+                          attachment)
                 if random is True:
                     sleep_time = random_time(min_sleep, max_sleep)
                     time.sleep(float(sleep_time))
@@ -202,6 +207,7 @@ if __name__ == '__main__':
     main()
 
 # TODO:
+# fix UUID bug
 # Code cleanup
 # Improve logging
 # add more SMTP errors
