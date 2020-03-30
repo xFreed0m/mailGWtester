@@ -10,7 +10,7 @@ pip3 install -r requirments.txt
 Second, run the tool with the needed flags:
 ```
 python3 mailGWtest.py --targets [mail GW IP or file containing multiple IPs]
- -t [TO address] -fa [FROM address] -f/-F [file or folder with malicious attachments
+ -t [TO address] -fa [FROM address] -f/-F [file or folder with malicious attachments]
 ``` 
 
 ### Issues, bugs and other code-issues
